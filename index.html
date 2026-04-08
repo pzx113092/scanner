@@ -7,16 +7,27 @@
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
         />
         <title>GS1 Barcode Parser</title>
+        <link rel="stylesheet" href="./style.css" />
     </head>
 
-    <body style="margin: 0">
-        <button id="start-scanning">Start scanning</button>
-        <p id="result"></p>
+    <body>
+        <div class="container">
+            <div class="card">
+                <h1>GS1 Barcode Parser</h1>
+                <p class="subtitle">Scan Data Matrix barcodes with GS1 application identifiers</p>
+                
+                <button id="start-scanning" class="btn btn-primary">
+                    Start Scanning
+                </button>
+                
+                <div id="result" class="result-container"></div>
+            </div>
+        </div>
+
         <script type="module">
             import "./ScanbotSDK.ui2.min.js";
             const sdk = await ScanbotSDK.initialize({
-                enginePath:
-                    "./",
+                enginePath: "./",
             });
             document
             .getElementById("start-scanning")
@@ -33,7 +44,7 @@
                     if (scanResult.items[0].barcode.isGS1Message) {
                         const data = scanResult.items[0].barcode.extractedDocument;
                         if (!data?.children?.length) {
-                            document.getElementById("result").innerText = "";
+                            document.getElementById("result").innerHTML = "";
                             return;
                         }
 
@@ -60,21 +71,22 @@
                             .filter((field) => field !== undefined);
 
                         if (!results.length) {
-                            document.getElementById("result").innerText = "";
+                            document.getElementById("result").innerHTML = "";
                             return;
                         }
 
-                        document.getElementById("result").innerText = results
-                            .map((item) => `${item.label}: ${item.value}\n`)
-                            .join("\n");
+                        const resultHTML = results
+                            .map((item) => `<div class="result-item"><span class="label">${item.label}:</span> <span class="value">${item.value}</span></div>`)
+                            .join("");
+                        
+                        document.getElementById("result").innerHTML = resultHTML;
                     } else {
-                        document.getElementById("result").innerText = "No application identifiers found";
+                        document.getElementById("result").innerHTML = '<div class="error">No application identifiers found</div>';
                     }
                 } else {
-                    document.getElementById("result").innerText = "Scanning aborted by the user";
+                    document.getElementById("result").innerHTML = '<div class="info">Scanning aborted by the user</div>';
                 }
             });
     </script>
-</body>
-
+    </body>
 </html>

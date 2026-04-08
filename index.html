@@ -231,25 +231,6 @@
       } else {
         resultEl.textContent = "No application identifiers found";
       }
-
-        resultEl.innerHTML = "";
-
-        results.forEach(i => {
-        const node = document.createElement("div");
-        node.className = "result-item";
-
-        const key = document.createElement("div");
-        key.className = "key";
-        key.textContent = i.label;
-
-        const val = document.createElement("div");
-        val.className = "val";
-        val.textContent = i.value;
-
-        node.appendChild(key);
-        node.appendChild(val);
-        resultEl.appendChild(node);
-        });
     }
 
     startBtn.addEventListener("click", async () => {

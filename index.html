@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+        />
+        <title>GS1 Barcode Parser</title>
+    </head>
+
+    <body style="margin: 0">
+        <button id="start">Use camera</button>
+        <video id="preview" autoplay playsinline></video>
+        <script type="module">
+        const btn = document.getElementById('start');
+        const video = document.getElementById('preview');
+
+        btn.addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error('Camera denied or error:', err);
+            // err.name can be "NotAllowedError", "NotFoundError", "OverconstrainedError", etc.
+        }
+        });
+        </script>
+
+
+        <button id="start-scanning">Start scanning</button>
+        <p id="result"></p>
+        <script type="module">
+            import "/ScanbotSDK.ui2.min.js";
+            const sdk = await ScanbotSDK.initialize({
+                enginePath:
+                    "/",
+            });
+            document
+                .getElementById("start-scanning")
+                .addEventListener("click", async () => {
+
+                    const config =
+                        new ScanbotSDK.UI.Config.BarcodeScannerScreenConfiguration();
+
+                    const scanResult = await ScanbotSDK.UI.createBarcodeScanner(config);
+                    if (scanResult?.items?.length > 0) {
+                        document.getElementById("result").innerText = scanResult.items[0].barcode.text;
+                    } else {
+                        document.getElementById("result").innerText = "Scanning aborted by the user";
+                    }
+                });
+        </script>
+    </body>
+</html>

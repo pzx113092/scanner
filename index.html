@@ -193,45 +193,62 @@
     }
     initSDK();
 
-    function renderResults(items){
-      if(!items || items.length === 0){
-        resultEl.textContent = "Scanning aborted by the user";
-        return;
-      }
+    async function renderResults(items){
+        if(!items || items.length === 0){
+            resultEl.textContent = "Scanning aborted by the user";
+            return;
+        }
 
-      const item = items[0];
-      if(item?.barcode?.isGS1Message){
+        const item = items[0];
+        if(!item?.barcode?.isGS1Message){
+            resultEl.textContent = "No application identifiers found";
+            return;
+        }
+
         const data = item.barcode.extractedDocument;
         if(!data?.children?.length){
-          resultEl.textContent = "";
-          return;
+            resultEl.textContent = "";
+            return;
         }
 
         const results = data.children
-          .map(child => {
+        .map(child => {
             const fields = child.fields;
             if(!fields?.length) return undefined;
             const dataSet = { label: "", value: "" };
             for(const field of fields){
-              const typeName = field.type?.name;
-              const text = field.value?.text || "";
-              if(typeName === "ElementDescription") dataSet.label = text;
-              else if(typeName === "RawValue") dataSet.value = text;
+                const typeName = field.type?.name;
+                const text = field.value?.text || "";
+                if(typeName === "ElementDescription") dataSet.label = text;
+                else if(typeName === "RawValue") dataSet.value = text;
             }
             return dataSet;
-          })
-          .filter(Boolean);
+        })
+        .filter(Boolean);
 
         if(!results.length){
-          resultEl.textContent = "";
-          return;
+        resultEl.textContent = "";
+        return;
         }
 
-        resultEl.textContent = results.map(i => `${i.label}: ${i.value}`).join("\n");
-      } else {
-        resultEl.textContent = "No application identifiers found";
-      }
-    }
+        // render as separate item blocks
+        resultEl.innerHTML = "";
+        results.forEach(i => {
+            const node = document.createElement("div");
+            node.className = "result-item";
+            const key = document.createElement("div");
+            key.className = "key";
+            key.textContent = i.label;
+
+            const val = document.createElement("div");
+            val.className = "val";
+            val.textContent = i.value;
+
+            node.appendChild(key);
+            node.appendChild(val);
+            resultEl.appendChild(node);
+            });
+        }
 
     startBtn.addEventListener("click", async () => {
       if(!sdk){

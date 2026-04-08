@@ -117,37 +117,23 @@
     }
 
     .result{
-    margin-top:12px;
-    background:var(--glass);
-    border-radius:8px;
-    padding:12px;
-    color:var(--text);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
-    font-size:13px;
-    min-height:120px;
-    overflow:auto;
-    white-space:normal;       /* allow wrapping */
-    border:1px solid rgba(255,255,255,0.02);
-    display:flex;
-    flex-direction:column;
-    gap:8px;
+      margin-top:12px;
+      background:var(--glass);
+      border-radius:8px;
+      padding:12px;
+      color:var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+      font-size:13px;
+      min-height:120px;
+      overflow:auto;
+      white-space:pre-wrap;
+      border:1px solid rgba(255,255,255,0.02);
     }
 
-    /* individual item card inside result */
-    .result-item{
-    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
-    border-radius:8px;
-    padding:10px;
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    align-items:center;
-    border:1px solid rgba(255,255,255,0.03);
+    .note{
+      font-size:12px;
+      color:var(--muted);
     }
-
-    /* key and value styling */
-    .result-item .key{ color:var(--muted); font-weight:600; font-size:12px; }
-    .result-item .val{ color:var(--text); font-family:inherit; font-size:13px; word-break:break-all; text-align:right; }
 
 
     .status{
@@ -161,6 +147,8 @@
     <div class="card" role="application" aria-label="GS1 Barcode Parser">
       <div class="main">
         <h1>GS1 Barcode Parser</h1>
+        
+
         <div class="controls" aria-hidden="false">
           <button id="start-scanning" class="primary" type="button">Start scanning</button>
           <button id="clear" class="ghost" type="button">Clear</button>
@@ -168,7 +156,6 @@
 
         <div id="result" class="result" aria-live="polite"></div>
       </div>
-
     </div>
   </div>
 
@@ -193,62 +180,45 @@
     }
     initSDK();
 
-    async function renderResults(items){
-        if(!items || items.length === 0){
-            resultEl.textContent = "Scanning aborted by the user";
-            return;
-        }
+    function renderResults(items){
+      if(!items || items.length === 0){
+        resultEl.textContent = "Scanning aborted by the user";
+        return;
+      }
 
-        const item = items[0];
-        if(!item?.barcode?.isGS1Message){
-            resultEl.textContent = "No application identifiers found";
-            return;
-        }
-
+      const item = items[0];
+      if(item?.barcode?.isGS1Message){
         const data = item.barcode.extractedDocument;
         if(!data?.children?.length){
-            resultEl.textContent = "";
-            return;
+          resultEl.textContent = "";
+          return;
         }
 
         const results = data.children
-        .map(child => {
+          .map(child => {
             const fields = child.fields;
             if(!fields?.length) return undefined;
             const dataSet = { label: "", value: "" };
             for(const field of fields){
-                const typeName = field.type?.name;
-                const text = field.value?.text || "";
-                if(typeName === "ElementDescription") dataSet.label = text;
-                else if(typeName === "RawValue") dataSet.value = text;
+              const typeName = field.type?.name;
+              const text = field.value?.text || "";
+              if(typeName === "ElementDescription") dataSet.label = text;
+              else if(typeName === "RawValue") dataSet.value = text;
             }
             return dataSet;
-        })
-        .filter(Boolean);
+          })
+          .filter(Boolean);
 
         if(!results.length){
-        resultEl.textContent = "";
-        return;
+          resultEl.textContent = "";
+          return;
         }
 
-        // render as separate item blocks
-        resultEl.innerHTML = "";
-        results.forEach(i => {
-            const node = document.createElement("div");
-            node.className = "result-item";
-            const key = document.createElement("div");
-            key.className = "key";
-            key.textContent = i.label;
-
-            const val = document.createElement("div");
-            val.className = "val";
-            val.textContent = i.value;
-
-            node.appendChild(key);
-            node.appendChild(val);
-            resultEl.appendChild(node);
-            });
-        }
+        resultEl.textContent = results.map(i => `${i.label}: ${i.value}`).join("\n");
+      } else {
+        resultEl.textContent = "No application identifiers found";
+      }
+    }
 
     startBtn.addEventListener("click", async () => {
       if(!sdk){

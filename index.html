@@ -47,7 +47,6 @@
       box-shadow:var(--shadow);
       padding:20px;
       display:grid;
-      grid-template-columns: 1fr 360px;
       gap:18px;
       align-items:start;
     }
@@ -118,33 +117,38 @@
     }
 
     .result{
-      margin-top:12px;
-      background:var(--glass);
-      border-radius:8px;
-      padding:12px;
-      color:var(--text);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
-      font-size:13px;
-      min-height:120px;
-      overflow:auto;
-      white-space:pre-wrap;
-      border:1px solid rgba(255,255,255,0.02);
+    margin-top:12px;
+    background:var(--glass);
+    border-radius:8px;
+    padding:12px;
+    color:var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+    font-size:13px;
+    min-height:120px;
+    overflow:auto;
+    white-space:normal;       /* allow wrapping */
+    border:1px solid rgba(255,255,255,0.02);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
     }
 
-    .note{
-      font-size:12px;
-      color:var(--muted);
+    /* individual item card inside result */
+    .result-item{
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+    border-radius:8px;
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:center;
+    border:1px solid rgba(255,255,255,0.03);
     }
 
-    .footer{
-      margin-top:auto;
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      gap:8px;
-      align-items:center;
-      justify-content:space-between;
-    }
+    /* key and value styling */
+    .result-item .key{ color:var(--muted); font-weight:600; font-size:12px; }
+    .result-item .val{ color:var(--text); font-family:inherit; font-size:13px; word-break:break-all; text-align:right; }
+
 
     .status{
       font-size:13px;
@@ -157,33 +161,14 @@
     <div class="card" role="application" aria-label="GS1 Barcode Parser">
       <div class="main">
         <h1>GS1 Barcode Parser</h1>
-        <p class="lead">Scan Data Matrix barcodes and extract GS1 application identifiers.</p>
-
         <div class="controls" aria-hidden="false">
           <button id="start-scanning" class="primary" type="button">Start scanning</button>
           <button id="clear" class="ghost" type="button">Clear</button>
         </div>
 
         <div id="result" class="result" aria-live="polite"></div>
-
-        <div class="footer">
-          <span class="note">Supports Data Matrix (GS1)</span>
-          <span id="status" class="status">Ready</span>
-        </div>
       </div>
 
-      <aside class="side" aria-label="How it works">
-        <strong>How it works</strong>
-        <p class="note">Tap "Start scanning" to open the barcode scanner. The app will parse the GS1 elements and show label:value pairs below.</p>
-
-        <div>
-          <strong>Sample output</strong>
-          <div class="result" style="min-height:80px;">
-AI: (01) 0950110153009
-GLN: 1234567890123
-          </div>
-        </div>
-      </aside>
     </div>
   </div>
 
@@ -246,6 +231,25 @@ GLN: 1234567890123
       } else {
         resultEl.textContent = "No application identifiers found";
       }
+
+        resultEl.innerHTML = "";
+
+        results.forEach(i => {
+        const node = document.createElement("div");
+        node.className = "result-item";
+
+        const key = document.createElement("div");
+        key.className = "key";
+        key.textContent = i.label;
+
+        const val = document.createElement("div");
+        val.className = "val";
+        val.textContent = i.value;
+
+        node.appendChild(key);
+        node.appendChild(val);
+        resultEl.appendChild(node);
+        });
     }
 
     startBtn.addEventListener("click", async () => {

@@ -30,11 +30,51 @@
                 const scanResult = await ScanbotSDK.UI.createBarcodeScanner(config);
 
                 if (scanResult?.items?.length > 0) {
-                    document.getElementById("result").innerText = scanResult.items[0].barcode.text;
+                    if (scanResult.items[0].barcode.isGS1Message) {
+                        const data = scanResult.items[0].barcode.extractedDocument;
+                        if (!data?.children?.length) {
+                            document.getElementById("result").innerText = "";
+                            return;
+                        }
+
+                        const results = data.children
+                            .map((child) => {
+                                const fields = child.fields;
+                                if (!fields?.length) return undefined;
+
+                                const dataSet = { label: "", value: "" };
+
+                                for (const field of fields) {
+                                    const typeName = field.type?.name;
+                                    const text = field.value?.text || "";
+
+                                    if (typeName === "ElementDescription") {
+                                        dataSet.label = text;
+                                    } else if (typeName === "RawValue") {
+                                        dataSet.value = text;
+                                    }
+                                }
+
+                                return dataSet;
+                            })
+                            .filter((field) => field !== undefined);
+
+                        if (!results.length) {
+                            document.getElementById("result").innerText = "";
+                            return;
+                        }
+
+                        document.getElementById("result").innerText = results
+                            .map((item) => `${item.label}: ${item.value}\n`)
+                            .join("\n");
+                    } else {
+                        document.getElementById("result").innerText = "No application identifiers found";
+                    }
                 } else {
                     document.getElementById("result").innerText = "Scanning aborted by the user";
                 }
             });
-        </script>
-    </body>
+    </script>
+</body>
+
 </html>

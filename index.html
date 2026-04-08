@@ -31,10 +31,10 @@
         <button id="start-scanning">Start scanning</button>
         <p id="result"></p>
         <script type="module">
-            import "/ScanbotSDK.ui2.min.js";
+            import "./ScanbotSDK.ui2.min.js";
             const sdk = await ScanbotSDK.initialize({
                 enginePath:
-                    "/",
+                    "./",
             });
             document
                 .getElementById("start-scanning")
